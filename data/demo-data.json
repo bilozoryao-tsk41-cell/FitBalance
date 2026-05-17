@@ -1,0 +1,39 @@
+{
+  "profile": {
+    "name": "Ярослава",
+    "age": 28,
+    "gender": "female",
+    "weight": 65,
+    "height": 1.70,
+    "calorieGoal": 2000,
+    "proteinGoal": 120,
+    "fatGoal": 60,
+    "carbGoal": 250,
+    "motivator": "Потужний Михайло"
+  },
+  "records": {
+    "2026-05-15": {
+      "date": "2026-05-15",
+      "status": "Виконано",
+      "workouts": [
+        {"name": "Присідання зі штангою", "sets": 3, "reps": 12, "weight": 40},
+        {"name": "Піша прогулянка", "sets": 1, "reps": 1, "weight": 0}
+      ],
+      "food": { "calories": 1800, "protein": 110, "fat": 55, "carbs": 210 }
+    },
+    "2026-05-16": {
+      "date": "2026-05-16",
+      "status": "Виконано",
+      "workouts": [
+        {"name": "Плавання", "sets": 1, "reps": 1, "weight": 0}
+      ],
+      "food": { "calories": 2500, "protein": 80, "fat": 100, "carbs": 300 }
+    },
+    "2026-05-17": {
+      "date": "2026-05-17",
+      "status": "Відпочинок",
+      "workouts": [],
+      "food": { "calories": 1900, "protein": 90, "fat": 60, "carbs": 240 }
+    }
+  }
+}

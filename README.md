@@ -1,35 +1,28 @@
-# KPI 2026 GitHub Pages App Template
+# FitBalance
 
-Starter repository for small coursework web applications that are implemented from existing markdown requirements and deployed to GitHub Pages.
+FitBalance — це інтерактивний персональний щоденник для відстеження фізичної активності та харчування з елементами гейміфікації та мотивації. 
 
-## Intended use
+## Технології
+- HTML, CSS, Vanilla JS
+- Без використання фреймворків (для простоти і швидкості).
+- Зберігання даних: `localStorage` (браузер).
 
-Use this repository as a template for:
-- the teacher's demo application;
-- student repositories created after requirements are already written;
-- small GitHub Pages projects that must stay within static hosting constraints.
+## Функціонал
+- Налаштування профілю (обчислення ІМТ).
+- Календар активності та статуси дня.
+- Журнали тренувань та харчування.
+- Система гейміфікації (мотиватор, пасхалки).
 
-## Suggested workflow
+## Як запустити
+Оскільки це статичний сайт без бекенду, ви можете просто відкрити файл `index.html` у браузері або розгорнути його на GitHub Pages.
 
-1. Create a new repository from this template.
-2. Add the project requirements as markdown under `requirements/`.
-3. Invoke the `requirements-to-github-pages` skill inside the new repository.
-4. Let the skill:
-   - assess feasibility;
-   - choose the simplest viable stack;
-   - document SDRs;
-   - implement the app;
-   - add demo data and reset flow;
-   - update deployment files.
+### GitHub Pages
+Щоб розгорнути застосунок на GitHub Pages:
+1. Запуште код у гілку `main`.
+2. Переконайтеся, що GitHub Actions активовані в налаштуваннях репозиторію.
+3. Дочекайтеся завершення Workflow `Deploy static site to GitHub Pages`.
+4. В налаштуваннях GitHub Pages оберіть розгортання з Actions.
 
-## Initial repository structure
-
-- `requirements/` - place the markdown requirements here
-- `docs/sdr/` - software decision records
-- `data/` - seed and demo data if needed
-- `.github/workflows/` - GitHub Pages deployment workflow
-
-## Notes
-
-This repository is intentionally minimal. It is not a finished application.
-It is a clean starting point for projects that will be generated from existing requirements.
+## Демо дані
+У застосунку є кнопка `Reset demo data`, яка завантажить попередньо підготовлені дані (включаючи виконані дні та відпочинок) для демонстрації логіки.
+Кнопка `Clear all data` очистить ваш `localStorage`.
