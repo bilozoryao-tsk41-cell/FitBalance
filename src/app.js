@@ -77,7 +77,23 @@ function renderWorkoutRows() {
     });
 }
 
+function cleanupFutureRecords() {
+    const records = getRecords();
+    const todayStr = new Date().toISOString().split('T')[0];
+    let changed = false;
+    for (const d in records) {
+        if (d > todayStr) {
+            delete records[d];
+            changed = true;
+        }
+    }
+    if (changed) {
+        saveRecords(records);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    cleanupFutureRecords();
     checkRedDaysSanction();
     initUI();
     bindEvents();
