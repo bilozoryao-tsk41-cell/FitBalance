@@ -79,8 +79,9 @@ function checkRedDaysSanction() {
         const hasFood = rec.food && rec.food.calories > 0;
         const hasWorkout = rec.workouts && rec.workouts.length > 0;
         const isExempt = (rec.status === 'Відпочинок' || rec.status === 'Хвороба' || rec.status === 'Відпустка');
+        const isManualTraining = (rec.status === 'Тренування');
         
-        if (!hasFood && !hasWorkout && !isExempt) {
+        if (!hasFood && !hasWorkout && !isExempt && !isManualTraining) {
             triggerSanction();
         }
     }
@@ -168,6 +169,16 @@ function bindEvents() {
             document.getElementById('workout-weight').value = '';
             document.getElementById('workout-notes').value = '';
             
+            updateUI();
+        }
+    });
+    
+    // Delete Workout event delegation
+    document.getElementById('workout-list-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-workout-btn')) {
+            const index = e.target.getAttribute('data-index');
+            currentRecord.workouts.splice(index, 1);
+            saveRecord(currentRecord);
             updateUI();
         }
     });

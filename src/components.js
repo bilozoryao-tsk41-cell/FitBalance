@@ -65,7 +65,7 @@ export const renderCalendar = (containerId, selectedDate, onDateSelect, profile)
             colorClass = 'status-yellow';
         } else if (record.status === 'Хвороба' || record.status === 'Відпустка') {
             colorClass = 'status-blue';
-        } else if (hasFood && hasWorkout) {
+        } else if (record.status === 'Тренування' || (hasFood && hasWorkout)) {
             colorClass = 'status-green';
         } else if (dStr < todayStr && !hasFood && !hasWorkout && !record.status) {
             colorClass = 'status-red';
@@ -79,6 +79,7 @@ export const renderCalendar = (containerId, selectedDate, onDateSelect, profile)
         }
 
         let statusIcon = '';
+        if (record.status === 'Тренування') statusIcon = '🏋️';
         if (record.status === 'Відпочинок') statusIcon = '🛌';
         if (record.status === 'Хвороба') statusIcon = '🤒';
         if (record.status === 'Відпустка') statusIcon = '🏖️';
@@ -105,14 +106,19 @@ export const renderWorkoutList = (containerId, workouts) => {
         return;
     }
     
-    workouts.forEach((w) => {
+    workouts.forEach((w, index) => {
         const item = document.createElement('div');
         item.className = 'workout-item';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
         let donuts = '🍩'.repeat(parseInt(w.difficulty) || 1);
         item.innerHTML = `
-            <div><strong>${w.name}</strong> (${donuts})</div> 
-            <span>${w.sets} підходів, ${w.reps} повторень, ${w.weight} кг</span>
-            ${w.notes ? `<div class="workout-item-details">Нотатки: ${w.notes}</div>` : ''}
+            <div style="flex-grow: 1;">
+                <div><strong>${w.name}</strong> (${donuts})</div> 
+                <span>${w.sets} підходів, ${w.reps} повторень, ${w.weight} кг</span>
+                ${w.notes ? `<div class="workout-item-details">Нотатки: ${w.notes}</div>` : ''}
+            </div>
+            <button class="delete-workout-btn outline-btn danger" data-index="${index}" style="padding: 0.3rem 0.6rem; font-size: 0.9rem; margin-left: 1rem; width: auto;">❌</button>
         `;
         container.appendChild(item);
     });
