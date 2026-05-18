@@ -2,8 +2,16 @@
 import { getProfile, saveProfile, getRecordByDate, saveRecord, resetDemoData, flushData, getRecords, saveRecords } from './storage.js';
 import { renderCalendar, renderWorkoutList, renderFoodSummary } from './components.js';
 
+function getLocalDateStr() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
 let profile = getProfile();
-let currentDate = new Date().toISOString().split('T')[0];
+let currentDate = getLocalDateStr();
 let currentRecord = getRecordByDate(currentDate);
 let isEditingFood = false;
 
@@ -197,6 +205,11 @@ function bindEvents() {
 
     // Status Select
     document.getElementById('status-select').addEventListener('change', (e) => {
+        if (currentDate !== getLocalDateStr()) {
+            alert('Ви можете змінювати статус лише за поточну дату!');
+            updateUI();
+            return;
+        }
         currentRecord.status = e.target.value;
         saveRecord(currentRecord);
         updateUI();
@@ -204,12 +217,20 @@ function bindEvents() {
     
     // Workout Form (Dynamic Multi-rows)
     document.getElementById('add-workout-row-btn').addEventListener('click', () => {
+        if (currentDate !== getLocalDateStr()) {
+            alert('Ви можете додавати вправи лише за поточну дату!');
+            return;
+        }
         workoutRows.push({ id: Date.now() });
         renderWorkoutRows();
     });
 
     // Delete temporary workout row
     document.getElementById('workout-rows-container').addEventListener('click', (e) => {
+        if (currentDate !== getLocalDateStr()) {
+            alert('Ви можете змінювати вправи лише за поточну дату!');
+            return;
+        }
         if (e.target.classList.contains('delete-row-btn')) {
             const rowId = parseInt(e.target.getAttribute('data-row-id'));
             workoutRows = workoutRows.filter(r => r.id !== rowId);
@@ -219,6 +240,10 @@ function bindEvents() {
 
     // Save All Workouts
     document.getElementById('save-workouts-btn').addEventListener('click', () => {
+        if (currentDate !== getLocalDateStr()) {
+            alert('Ви можете зберігати вправи лише за поточну дату!');
+            return;
+        }
         const rows = document.querySelectorAll('.workout-row');
         const newWorkouts = [];
         let allValid = true;
@@ -256,6 +281,10 @@ function bindEvents() {
     
     // Edit & Delete Workout event delegation
     document.getElementById('workout-list-container').addEventListener('click', (e) => {
+        if (currentDate !== getLocalDateStr()) {
+            alert('Ви можете змінювати вправи лише за поточну дату!');
+            return;
+        }
         if (e.target.classList.contains('delete-workout-btn')) {
             const index = e.target.getAttribute('data-index');
             currentRecord.workouts.splice(index, 1);
@@ -298,6 +327,10 @@ function bindEvents() {
     
     // Food editing trigger delegation
     document.getElementById('food-summary-container').addEventListener('click', (e) => {
+        if (currentDate !== getLocalDateStr()) {
+            alert('Ви можете змінювати харчування лише за поточну дату!');
+            return;
+        }
         if (e.target.id === 'edit-food-totals-btn') {
             document.getElementById('food-calories').value = currentRecord.food.calories || '';
             document.getElementById('food-protein').value = currentRecord.food.protein || '';
@@ -314,6 +347,10 @@ function bindEvents() {
 
     // Food Form
     document.getElementById('save-food-btn').addEventListener('click', () => {
+        if (currentDate !== getLocalDateStr()) {
+            alert('Ви можете змінювати харчування лише за поточну дату!');
+            return;
+        }
         const cal = parseInt(document.getElementById('food-calories').value) || 0;
         const pro = parseInt(document.getElementById('food-protein').value) || 0;
         const fat = parseInt(document.getElementById('food-fat').value) || 0;

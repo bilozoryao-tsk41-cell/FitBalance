@@ -337,11 +337,13 @@ input:invalid {
   aspect-ratio: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  padding: 0.4rem 0.2rem 0.3rem 0.2rem;
+  box-sizing: border-box;
 }
 
 .calendar-day.empty {
@@ -355,13 +357,15 @@ input:invalid {
 }
 
 .date-number {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
+  line-height: 1;
 }
 
 .day-status-icon {
-  font-size: 1.2rem;
-  margin-top: 0.2rem;
+  font-size: 1rem;
+  margin-top: 0.1rem;
+  line-height: 1;
 }
 
 .calendar-day:hover {
@@ -376,6 +380,30 @@ input:invalid {
 .day-status {
   font-size: 1.2rem;
   margin-top: 0.5rem;
+}
+
+.day-mini-stats {
+  font-size: 0.62rem !important;
+  color: var(--text-muted);
+  opacity: 0.9;
+  line-height: 1.1;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 100%;
+  text-align: center;
+}
+
+.stat-kcal {
+  color: #f87171 !important; /* light red-orange */
+  font-weight: bold;
+}
+
+.stat-workout {
+  color: #34d399 !important; /* emerald green */
+  font-weight: bold;
 }
 
 /* Colors for Calendar (FR3) */

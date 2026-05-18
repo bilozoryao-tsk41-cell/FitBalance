@@ -86,10 +86,27 @@ export const renderCalendar = (containerId, selectedDate, onDateSelect, profile)
         if (record.status === 'Відпустка') statusIcon = '🏖️';
         if (hasFood && hasWorkout && !statusIcon) statusIcon = '✅';
 
+        let statsHtml = '';
+        if (hasFood || hasWorkout) {
+            const kcalText = hasFood ? `${record.food.calories}к` : '';
+            let workoutText = '';
+            if (hasWorkout) {
+                const totalSets = record.workouts.reduce((acc, w) => acc + (parseInt(w.sets) || 0), 0);
+                workoutText = `${record.workouts.length}в/${totalSets}п`;
+            }
+            statsHtml = `
+                <div class="day-mini-stats">
+                    ${kcalText ? `<span class="stat-kcal">🔥 ${kcalText}</span>` : ''}
+                    ${workoutText ? `<span class="stat-workout">💪 ${workoutText}</span>` : ''}
+                </div>
+            `;
+        }
+
         dayEl.innerHTML = `
             <div class="date-number">${d}</div>
             <div class="day-status-icon">${statusIcon}</div>
             ${donutHtml}
+            ${statsHtml}
         `;
         
         dayEl.addEventListener('click', () => onDateSelect(dStr));
