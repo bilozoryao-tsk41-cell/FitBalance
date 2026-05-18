@@ -206,7 +206,7 @@ function bindEvents() {
     // Status Select
     document.getElementById('status-select').addEventListener('change', (e) => {
         if (currentDate !== getLocalDateStr()) {
-            alert('Ви можете змінювати статус лише за поточну дату!');
+            alert('Ви не можете заповнювати дані на минулі дні!');
             updateUI();
             return;
         }
@@ -218,7 +218,7 @@ function bindEvents() {
     // Workout Form (Dynamic Multi-rows)
     document.getElementById('add-workout-row-btn').addEventListener('click', () => {
         if (currentDate !== getLocalDateStr()) {
-            alert('Ви можете додавати вправи лише за поточну дату!');
+            alert('Ви не можете заповнювати дані на минулі дні!');
             return;
         }
         workoutRows.push({ id: Date.now() });
@@ -228,7 +228,7 @@ function bindEvents() {
     // Delete temporary workout row
     document.getElementById('workout-rows-container').addEventListener('click', (e) => {
         if (currentDate !== getLocalDateStr()) {
-            alert('Ви можете змінювати вправи лише за поточну дату!');
+            alert('Ви не можете заповнювати дані на минулі дні!');
             return;
         }
         if (e.target.classList.contains('delete-row-btn')) {
@@ -241,7 +241,7 @@ function bindEvents() {
     // Save All Workouts
     document.getElementById('save-workouts-btn').addEventListener('click', () => {
         if (currentDate !== getLocalDateStr()) {
-            alert('Ви можете зберігати вправи лише за поточну дату!');
+            alert('Ви не можете заповнювати дані на минулі дні!');
             return;
         }
         const rows = document.querySelectorAll('.workout-row');
@@ -282,7 +282,7 @@ function bindEvents() {
     // Edit & Delete Workout event delegation
     document.getElementById('workout-list-container').addEventListener('click', (e) => {
         if (currentDate !== getLocalDateStr()) {
-            alert('Ви можете змінювати вправи лише за поточну дату!');
+            alert('Ви не можете заповнювати дані на минулі дні!');
             return;
         }
         if (e.target.classList.contains('delete-workout-btn')) {
@@ -328,7 +328,7 @@ function bindEvents() {
     // Food editing trigger delegation
     document.getElementById('food-summary-container').addEventListener('click', (e) => {
         if (currentDate !== getLocalDateStr()) {
-            alert('Ви можете змінювати харчування лише за поточну дату!');
+            alert('Ви не можете заповнювати дані на минулі дні!');
             return;
         }
         if (e.target.id === 'edit-food-totals-btn') {
@@ -348,7 +348,7 @@ function bindEvents() {
     // Food Form
     document.getElementById('save-food-btn').addEventListener('click', () => {
         if (currentDate !== getLocalDateStr()) {
-            alert('Ви можете змінювати харчування лише за поточну дату!');
+            alert('Ви не можете заповнювати дані на минулі дні!');
             return;
         }
         const cal = parseInt(document.getElementById('food-calories').value) || 0;
@@ -469,7 +469,7 @@ function updateUI() {
             overlay.innerHTML = '<span>🔒 Заблоковано (Минулий день)</span>';
             overlay.onclick = (e) => {
                 e.stopPropagation();
-                alert('Втручання у попередні дні неможливе! Ви не можете заповнювати або редагувати дані за минулі дні.');
+                alert('Ви не можете заповнювати дані на минулі дні!');
             };
             form.appendChild(overlay);
         }
@@ -493,7 +493,7 @@ function updateUI() {
             overlay.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: not-allowed; z-index: 10;';
             overlay.onclick = (e) => {
                 e.stopPropagation();
-                alert('Втручання у попередні дні неможливе! Ви не можете змінювати статус минулих днів.');
+                alert('Ви не можете заповнювати дані на минулі дні!');
             };
             statusSelector.appendChild(overlay);
         }
