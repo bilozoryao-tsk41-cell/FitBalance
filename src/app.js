@@ -429,7 +429,7 @@ function updateProfileAndGoals() {
 }
 
 export function selectDate(dateString) {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateStr();
     if (dateString > todayStr) {
         alert('Ви не можете заповнювати дані на майбутні дні!');
         return;
@@ -443,7 +443,7 @@ function updateUI() {
     const [y, m, d] = currentDate.split('-');
     document.getElementById('current-date-header').innerText = `День: ${d}-${m}-${y}`;
     
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateStr();
     const isToday = currentDate === todayStr;
     
     // Check 15 days rest limit (BR.X)
@@ -454,16 +454,49 @@ function updateUI() {
     renderWorkoutList('workout-list-container', currentRecord.workouts, isToday);
     renderFoodSummary('food-summary-container', currentRecord.food, profile, isToday);
     
-    // Hide/Show logs addition panels for past dates
+    // Lock/Unlock panels for past dates
     const addForms = document.querySelectorAll('.add-form');
     addForms.forEach(form => {
-        form.style.display = isToday ? 'block' : 'none';
+        form.style.position = 'relative';
+        const existingOverlay = form.querySelector('.lock-overlay');
+        if (existingOverlay) existingOverlay.remove();
+        
+        form.style.display = 'block';
+
+        if (!isToday) {
+            const overlay = document.createElement('div');
+            overlay.className = 'lock-overlay';
+            overlay.innerHTML = '<span>🔒 Заблоковано (Минулий день)</span>';
+            overlay.onclick = (e) => {
+                e.stopPropagation();
+                alert('Втручання у попередні дні неможливе! Ви не можете заповнювати або редагувати дані за минулі дні.');
+            };
+            form.appendChild(overlay);
+        }
     });
 
-    // Disable status select for past dates
-    const statusSelect = document.getElementById('status-select');
-    if (statusSelect) {
-        statusSelect.disabled = !isToday;
+    // Disable status select for past dates and wrap with overlay to show alert on click
+    const statusSelector = document.querySelector('.status-selector');
+    if (statusSelector) {
+        statusSelector.style.position = 'relative';
+        const existingOverlay = statusSelector.querySelector('.status-lock-overlay');
+        if (existingOverlay) existingOverlay.remove();
+        
+        const statusSelect = document.getElementById('status-select');
+        if (statusSelect) {
+            statusSelect.disabled = !isToday;
+        }
+
+        if (!isToday) {
+            const overlay = document.createElement('div');
+            overlay.className = 'status-lock-overlay';
+            overlay.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: not-allowed; z-index: 10;';
+            overlay.onclick = (e) => {
+                e.stopPropagation();
+                alert('Втручання у попередні дні неможливе! Ви не можете змінювати статус минулих днів.');
+            };
+            statusSelector.appendChild(overlay);
+        }
     }
     
     updateBMI(); // Initialize BMI display and icon
