@@ -97,7 +97,7 @@ export const renderCalendar = (containerId, selectedDate, onDateSelect, profile)
     }
 };
 
-export const renderWorkoutList = (containerId, workouts) => {
+export const renderWorkoutList = (containerId, workouts, isToday) => {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
@@ -113,24 +113,41 @@ export const renderWorkoutList = (containerId, workouts) => {
         item.style.display = 'flex';
         item.style.alignItems = 'center';
         let donuts = '🍩'.repeat(parseInt(w.difficulty) || 1);
+        
+        let editButtonsHtml = '';
+        if (isToday) {
+            editButtonsHtml = `
+                <button class="edit-workout-btn outline-btn" data-index="${index}" style="padding: 0.3rem 0.6rem; font-size: 0.9rem; margin-left: 0.5rem; width: auto;">✏️</button>
+                <button class="delete-workout-btn outline-btn danger" data-index="${index}" style="padding: 0.3rem 0.6rem; font-size: 0.9rem; margin-left: 0.5rem; width: auto;">❌</button>
+            `;
+        }
+        
         item.innerHTML = `
             <div style="flex-grow: 1;">
                 <div><strong>${w.name}</strong> (${donuts})</div> 
                 <span>${w.sets} підходів, ${w.reps} повторень, ${w.weight} кг</span>
                 ${w.notes ? `<div class="workout-item-details">Нотатки: ${w.notes}</div>` : ''}
             </div>
-            <button class="edit-workout-btn outline-btn" data-index="${index}" style="padding: 0.3rem 0.6rem; font-size: 0.9rem; margin-left: 0.5rem; width: auto;">✏️</button>
-            <button class="delete-workout-btn outline-btn danger" data-index="${index}" style="padding: 0.3rem 0.6rem; font-size: 0.9rem; margin-left: 0.5rem; width: auto;">❌</button>
+            ${editButtonsHtml}
         `;
         container.appendChild(item);
     });
 };
 
-export const renderFoodSummary = (containerId, food, profile) => {
+export const renderFoodSummary = (containerId, food, profile, isToday) => {
     const container = document.getElementById(containerId);
     if (!container) return;
     
     const calorieClass = food.calories > profile.calorieGoal ? 'over-limit' : '';
+    
+    let editButtonHtml = '';
+    if (isToday) {
+        editButtonHtml = `
+            <div style="text-align: right; margin-top: 0.5rem;">
+                <button id="edit-food-totals-btn" class="outline-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; width: auto;">✏️ Редагувати підсумки</button>
+            </div>
+        `;
+    }
     
     container.innerHTML = `
         <div class="summary-item ${calorieClass}">
@@ -149,8 +166,6 @@ export const renderFoodSummary = (containerId, food, profile) => {
             <label>Вуглеводи:</label>
             <span>${food.carbs} / ${profile.carbGoal} г</span>
         </div>
-        <div style="text-align: right; margin-top: 0.5rem;">
-            <button id="edit-food-totals-btn" class="outline-btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; width: auto;">✏️ Редагувати підсумки</button>
-        </div>
+        ${editButtonHtml}
     `;
 };

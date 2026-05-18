@@ -406,13 +406,28 @@ function updateUI() {
     const [y, m, d] = currentDate.split('-');
     document.getElementById('current-date-header').innerText = `День: ${d}-${m}-${y}`;
     
+    const todayStr = new Date().toISOString().split('T')[0];
+    const isToday = currentDate === todayStr;
+    
     // Check 15 days rest limit (BR.X)
     checkRestLimit();
 
     // Render Components
     renderCalendar('calendar-container', currentDate, selectDate, profile);
-    renderWorkoutList('workout-list-container', currentRecord.workouts);
-    renderFoodSummary('food-summary-container', currentRecord.food, profile);
+    renderWorkoutList('workout-list-container', currentRecord.workouts, isToday);
+    renderFoodSummary('food-summary-container', currentRecord.food, profile, isToday);
+    
+    // Hide/Show logs addition panels for past dates
+    const addForms = document.querySelectorAll('.add-form');
+    addForms.forEach(form => {
+        form.style.display = isToday ? 'block' : 'none';
+    });
+
+    // Disable status select for past dates
+    const statusSelect = document.getElementById('status-select');
+    if (statusSelect) {
+        statusSelect.disabled = !isToday;
+    }
     
     updateBMI(); // Initialize BMI display and icon
     checkMotivator();
