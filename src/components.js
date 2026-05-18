@@ -1,26 +1,62 @@
 // src/components.js
 import { getRecordByDate, getRecords } from './storage.js';
 
+let viewDate = new Date();
+
 export const renderCalendar = (containerId, selectedDate, onDateSelect, profile) => {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    container.innerHTML = '';
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    const todayStr = new Date().toISOString().split('T')[0];
     
-    // 30-day calendar (show past 30 days up to today)
-    for (let i = -29; i <= 0; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        
-        const dateString = date.toISOString().split('T')[0];
-        const record = getRecordByDate(dateString);
+    const monthNames = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+    
+    let html = `
+        <div class="calendar-month-header">
+            <button id="prev-month-btn">&lt;</button>
+            <span>${monthNames[month]} ${year}</span>
+            <button id="next-month-btn">&gt;</button>
+        </div>
+        <div class="calendar-header">
+            <div>Пн</div><div>Вв</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Нд</div>
+        </div>
+        <div class="calendar-wrapper"></div>
+    `;
+    
+    container.innerHTML = html;
+    
+    document.getElementById('prev-month-btn').onclick = () => {
+        viewDate.setMonth(viewDate.getMonth() - 1);
+        renderCalendar(containerId, selectedDate, onDateSelect, profile);
+    };
+    document.getElementById('next-month-btn').onclick = () => {
+        viewDate.setMonth(viewDate.getMonth() + 1);
+        renderCalendar(containerId, selectedDate, onDateSelect, profile);
+    };
+    
+    const wrapper = container.querySelector('.calendar-wrapper');
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    let startDayOfWeek = firstDay.getDay() - 1;
+    if (startDayOfWeek === -1) startDayOfWeek = 6;
+    
+    for (let i = 0; i < startDayOfWeek; i++) {
+        const emptyEl = document.createElement('div');
+        emptyEl.className = 'calendar-day empty';
+        wrapper.appendChild(emptyEl);
+    }
+    
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+        const dateObj = new Date(year, month, d, 12, 0, 0);
+        const dStr = dateObj.toISOString().split('T')[0];
+        const record = getRecordByDate(dStr);
         
         const dayEl = document.createElement('div');
-        dayEl.className = `calendar-day ${dateString === selectedDate ? 'selected' : ''}`;
+        dayEl.className = `calendar-day ${dStr === selectedDate ? 'selected' : ''} ${dStr === todayStr ? 'today' : ''}`;
         
-        // Determine status color (FR3)
         let colorClass = '';
         let hasFood = record.food.calories > 0;
         let hasWorkout = record.workouts && record.workouts.length > 0;
@@ -30,26 +66,32 @@ export const renderCalendar = (containerId, selectedDate, onDateSelect, profile)
         } else if (record.status === 'Хвороба' || record.status === 'Відпустка') {
             colorClass = 'status-blue';
         } else if (hasFood && hasWorkout) {
-            colorClass = 'status-green'; // Green: food filled AND at least one workout
-        } else if (date < today && !hasFood && !hasWorkout && !record.status) {
-            // Missed day
+            colorClass = 'status-green';
+        } else if (dStr < todayStr && !hasFood && !hasWorkout && !record.status) {
             colorClass = 'status-red';
         }
         
-        if (colorClass) {
-            dayEl.classList.add(colorClass);
-        }
+        if (colorClass) dayEl.classList.add(colorClass);
 
-        // BR3: Donut for calorie limit
         let donutHtml = '';
         if (record.food.calories > profile.calorieGoal) {
             donutHtml = '<div class="calendar-donut">🍩</div>';
         }
 
-        dayEl.innerHTML = `<div>${date.getDate()}/${date.getMonth() + 1}</div><div class="day-status"></div>${donutHtml}`;
+        let statusIcon = '';
+        if (record.status === 'Відпочинок') statusIcon = '🛌';
+        if (record.status === 'Хвороба') statusIcon = '🤒';
+        if (record.status === 'Відпустка') statusIcon = '🏖️';
+        if (hasFood && hasWorkout && !statusIcon) statusIcon = '✅';
+
+        dayEl.innerHTML = `
+            <div class="date-number">${d}</div>
+            <div class="day-status-icon">${statusIcon}</div>
+            ${donutHtml}
+        `;
         
-        dayEl.addEventListener('click', () => onDateSelect(dateString));
-        container.appendChild(dayEl);
+        dayEl.addEventListener('click', () => onDateSelect(dStr));
+        wrapper.appendChild(dayEl);
     }
 };
 

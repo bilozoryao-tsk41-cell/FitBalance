@@ -44,29 +44,52 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function checkRedDaysSanction() {
-    // BR.Z: Sanction for missing a day
     const records = getRecords();
+    const dates = Object.keys(records).sort();
+    if (dates.length === 0) return; // No records, so they are a new user
+    
     const today = new Date();
     today.setHours(0,0,0,0);
+    const todayStr = today.toISOString().split('T')[0];
     
-    // Check yesterday
+    const pastDates = dates.filter(d => d < todayStr);
+    if (pastDates.length === 0) return; // No past history
+    
+    const lastActiveDate = pastDates[pastDates.length - 1];
+    const lastRecord = records[lastActiveDate];
+    
+    // Indefinite freeze?
+    if (lastRecord && (lastRecord.status === 'Хвороба' || lastRecord.status === 'Відпустка')) {
+        return;
+    }
+    
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
     const yStr = yesterday.toISOString().split('T')[0];
     
-    const rec = records[yStr];
-    const hasFood = rec && rec.food && rec.food.calories > 0;
-    const hasWorkout = rec && rec.workouts && rec.workouts.length > 0;
-    const isExempt = rec && (rec.status === 'Хвороба' || rec.status === 'Відпустка' || rec.status === 'Відпочинок');
-    
-    if (!hasFood && !hasWorkout && !isExempt) {
-        // Red day detected!
-        document.getElementById('sanction-overlay').classList.remove('hidden');
-        // Wipe data but keep profile
-        saveRecords({});
-        // Reload current record since we just wiped
-        currentRecord = getRecordByDate(currentDate); 
+    // Missed completely?
+    if (lastActiveDate < yStr) {
+        triggerSanction();
+        return;
     }
+    
+    // Or yesterday exists but is empty
+    const rec = records[yStr];
+    if (rec) {
+        const hasFood = rec.food && rec.food.calories > 0;
+        const hasWorkout = rec.workouts && rec.workouts.length > 0;
+        const isExempt = (rec.status === 'Відпочинок' || rec.status === 'Хвороба' || rec.status === 'Відпустка');
+        
+        if (!hasFood && !hasWorkout && !isExempt) {
+            triggerSanction();
+        }
+    }
+}
+
+function triggerSanction() {
+    document.getElementById('sanction-overlay').classList.remove('hidden');
+    saveRecords({});
+    currentRecord = getRecordByDate(currentDate); 
 }
 
 function initUI() {
@@ -179,8 +202,9 @@ function bindEvents() {
 
 function updateBMI() {
     const w = parseFloat(document.getElementById('profile-weight').value) || 0;
-    const h = parseFloat(document.getElementById('profile-height').value) || 0;
-    if (w > 0 && h > 0) {
+    const h_cm = parseFloat(document.getElementById('profile-height').value) || 0;
+    if (w > 0 && h_cm > 0) {
+        const h = h_cm / 100;
         const bmi = (w / (h * h)).toFixed(1);
         document.getElementById('bmi-display').innerText = `BMI: ${bmi}`;
         
