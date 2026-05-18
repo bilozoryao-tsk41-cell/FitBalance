@@ -20,7 +20,7 @@ export const renderCalendar = (containerId, selectedDate, onDateSelect, profile)
             <button id="next-month-btn">&gt;</button>
         </div>
         <div class="calendar-header">
-            <div>Пн</div><div>Вв</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Нд</div>
+            <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Нд</div>
         </div>
         <div class="calendar-wrapper"></div>
     `;
