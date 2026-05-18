@@ -332,7 +332,8 @@ export function selectDate(dateString) {
 }
 
 function updateUI() {
-    document.getElementById('current-date-header').innerText = `День: ${currentDate}`;
+    const [y, m, d] = currentDate.split('-');
+    document.getElementById('current-date-header').innerText = `День: ${d}-${m}-${y}`;
     
     // Check 15 days rest limit (BR.X)
     checkRestLimit();
