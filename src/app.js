@@ -5,6 +5,7 @@ import { renderCalendar, renderWorkoutList, renderFoodSummary } from './componen
 let profile = getProfile();
 let currentDate = new Date().toISOString().split('T')[0];
 let currentRecord = getRecordByDate(currentDate);
+let isEditingFood = false;
 
 const MOTIVATORS = {
     "Потужний Михайло": [
@@ -253,13 +254,40 @@ function bindEvents() {
         updateUI();
     });
     
-    // Delete Workout from saved list event delegation
+    // Edit & Delete Workout event delegation
     document.getElementById('workout-list-container').addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-workout-btn')) {
             const index = e.target.getAttribute('data-index');
             currentRecord.workouts.splice(index, 1);
             saveRecord(currentRecord);
             updateUI();
+        } else if (e.target.classList.contains('edit-workout-btn')) {
+            const index = parseInt(e.target.getAttribute('data-index'));
+            const workout = currentRecord.workouts[index];
+
+            // Setup a single row in the form
+            workoutRows = [{ id: Date.now() }];
+            renderWorkoutRows();
+
+            const row = document.querySelector('.workout-row');
+            if (row) {
+                row.querySelector('.workout-row-name').value = workout.name;
+                row.querySelector('.workout-row-sets').value = workout.sets;
+                row.querySelector('.workout-row-reps').value = workout.reps;
+                row.querySelector('.workout-row-weight').value = workout.weight;
+                row.querySelector('.workout-row-notes').value = workout.notes;
+                
+                const diffEl = row.querySelector(`input[name="difficulty-${workoutRows[0].id}"][value="${workout.difficulty}"]`);
+                if (diffEl) diffEl.checked = true;
+            }
+
+            // Remove it from current list (so it's an edit-in-place that gets re-saved)
+            currentRecord.workouts.splice(index, 1);
+            saveRecord(currentRecord);
+            updateUI();
+
+            // Smooth scroll to form
+            document.getElementById('workout-rows-container').scrollIntoView({ behavior: 'smooth' });
         }
     });
 
@@ -268,6 +296,22 @@ function bindEvents() {
         document.getElementById('motivator-toast').classList.add('hidden');
     });
     
+    // Food editing trigger delegation
+    document.getElementById('food-summary-container').addEventListener('click', (e) => {
+        if (e.target.id === 'edit-food-totals-btn') {
+            document.getElementById('food-calories').value = currentRecord.food.calories || '';
+            document.getElementById('food-protein').value = currentRecord.food.protein || '';
+            document.getElementById('food-fat').value = currentRecord.food.fat || '';
+            document.getElementById('food-carbs').value = currentRecord.food.carbs || '';
+            
+            const saveBtn = document.getElementById('save-food-btn');
+            saveBtn.innerText = 'Оновити підсумки (замінити)';
+            isEditingFood = true;
+            
+            document.getElementById('food-calories').focus();
+        }
+    });
+
     // Food Form
     document.getElementById('save-food-btn').addEventListener('click', () => {
         const cal = parseInt(document.getElementById('food-calories').value) || 0;
@@ -275,10 +319,21 @@ function bindEvents() {
         const fat = parseInt(document.getElementById('food-fat').value) || 0;
         const carb = parseInt(document.getElementById('food-carbs').value) || 0;
         
-        currentRecord.food.calories += cal;
-        currentRecord.food.protein += pro;
-        currentRecord.food.fat += fat;
-        currentRecord.food.carbs += carb;
+        if (isEditingFood) {
+            currentRecord.food.calories = cal;
+            currentRecord.food.protein = pro;
+            currentRecord.food.fat = fat;
+            currentRecord.food.carbs = carb;
+            
+            const saveBtn = document.getElementById('save-food-btn');
+            saveBtn.innerText = 'Додати їжу';
+            isEditingFood = false;
+        } else {
+            currentRecord.food.calories += cal;
+            currentRecord.food.protein += pro;
+            currentRecord.food.fat += fat;
+            currentRecord.food.carbs += carb;
+        }
         
         saveRecord(currentRecord);
         
