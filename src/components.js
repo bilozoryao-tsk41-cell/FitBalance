@@ -1,15 +1,16 @@
 // src/components.js
 import { getRecordByDate, getRecords } from './storage.js';
 
-export const renderCalendar = (containerId, selectedDate, onDateSelect) => {
+export const renderCalendar = (containerId, selectedDate, onDateSelect, profile) => {
     const container = document.getElementById(containerId);
     if (!container) return;
     
     container.innerHTML = '';
     const today = new Date();
+    today.setHours(0,0,0,0);
     
-    // Simple 7-day calendar (3 days ago, today, 3 days ahead)
-    for (let i = -3; i <= 3; i++) {
+    // 30-day calendar (show past 30 days up to today)
+    for (let i = -29; i <= 0; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
         
@@ -19,18 +20,33 @@ export const renderCalendar = (containerId, selectedDate, onDateSelect) => {
         const dayEl = document.createElement('div');
         dayEl.className = `calendar-day ${dateString === selectedDate ? 'selected' : ''}`;
         
-        // Add status indicator if exists
-        if (record.status) {
-            dayEl.classList.add(`status-${record.status.toLowerCase().replace('/', '-')}`);
-            let statusIcon = '';
-            if (record.status === 'Виконано') statusIcon = '✅';
-            if (record.status === 'Відпочинок') statusIcon = '🛋️';
-            if (record.status === 'Хвороба/Лікарняний') statusIcon = '🤒';
-            if (record.status === 'Відпустка') statusIcon = '🏖️';
-            dayEl.innerHTML = `<div>${date.getDate()}/${date.getMonth() + 1}</div><div class="day-status">${statusIcon}</div>`;
-        } else {
-             dayEl.innerHTML = `<div>${date.getDate()}/${date.getMonth() + 1}</div><div class="day-status">-</div>`;
+        // Determine status color (FR3)
+        let colorClass = '';
+        let hasFood = record.food.calories > 0;
+        let hasWorkout = record.workouts && record.workouts.length > 0;
+        
+        if (record.status === 'Відпочинок') {
+            colorClass = 'status-yellow';
+        } else if (record.status === 'Хвороба' || record.status === 'Відпустка') {
+            colorClass = 'status-blue';
+        } else if (hasFood && hasWorkout) {
+            colorClass = 'status-green'; // Green: food filled AND at least one workout
+        } else if (date < today && !hasFood && !hasWorkout && !record.status) {
+            // Missed day
+            colorClass = 'status-red';
         }
+        
+        if (colorClass) {
+            dayEl.classList.add(colorClass);
+        }
+
+        // BR3: Donut for calorie limit
+        let donutHtml = '';
+        if (record.food.calories > profile.calorieGoal) {
+            donutHtml = '<div class="calendar-donut">🍩</div>';
+        }
+
+        dayEl.innerHTML = `<div>${date.getDate()}/${date.getMonth() + 1}</div><div class="day-status"></div>${donutHtml}`;
         
         dayEl.addEventListener('click', () => onDateSelect(dateString));
         container.appendChild(dayEl);
@@ -42,17 +58,19 @@ export const renderWorkoutList = (containerId, workouts) => {
     if (!container) return;
     container.innerHTML = '';
     
-    if (workouts.length === 0) {
+    if (!workouts || workouts.length === 0) {
         container.innerHTML = '<p class="empty-state">Тренувань ще не додано.</p>';
         return;
     }
     
-    workouts.forEach((w, index) => {
+    workouts.forEach((w) => {
         const item = document.createElement('div');
         item.className = 'workout-item';
+        let donuts = '🍩'.repeat(parseInt(w.difficulty) || 1);
         item.innerHTML = `
-            <strong>${w.name}</strong> 
+            <div><strong>${w.name}</strong> (${donuts})</div> 
             <span>${w.sets} підходів, ${w.reps} повторень, ${w.weight} кг</span>
+            ${w.notes ? `<div class="workout-item-details">Нотатки: ${w.notes}</div>` : ''}
         `;
         container.appendChild(item);
     });

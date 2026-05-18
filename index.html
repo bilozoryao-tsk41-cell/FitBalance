@@ -9,51 +9,60 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div class="app-container">
-      <header>
-        <h1>FitBalance</h1>
-        <div id="easter-egg-donut" class="hidden">🍩</div>
-      </header>
+    <!-- BR.Z Sanction Warning -->
+    <div id="sanction-overlay" class="hidden">
+      <div class="sanction-content">
+        <h1 class="sanction-text">Слабовольна тряпка!</h1>
+        <p>Ти пропустив день. Весь твій прогрес обнулено. Починай з чистого листа.</p>
+        <button id="accept-sanction-btn" class="primary-btn">Зрозуміло</button>
+      </div>
+    </div>
 
-      <div class="grid-layout">
+    <!-- Settings Modal -->
+    <dialog id="settings-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal" id="close-settings">&times;</span>
         
-        <!-- Profile Section -->
-        <section class="card profile-section">
+        <section class="settings-section">
           <h2>Профіль</h2>
-          <div class="form-group">
-            <label>Ім'я</label>
-            <input type="text" id="profile-name" placeholder="Ім'я">
+          <div class="form-group-row">
+            <div class="form-group">
+              <label>Ім'я *</label>
+              <input type="text" id="profile-name" placeholder="Ім'я" pattern="[A-Za-zА-Яа-яЁёІіЇїЄєҐґ']+" title="Тільки літери">
+            </div>
+            <div class="form-group">
+              <label>Прізвище (необов'язково)</label>
+              <input type="text" id="profile-lastname" placeholder="Прізвище" pattern="[A-Za-zА-Яа-яЁёІіЇїЄєҐґ']*" title="Тільки літери">
+            </div>
           </div>
           <div class="form-group-row">
             <div class="form-group">
-                <label>Вік</label>
-                <input type="number" id="profile-age" min="1" placeholder="Вік">
+                <label>Вік *</label>
+                <input type="number" id="profile-age" min="1" max="120" placeholder="Вік">
             </div>
             <div class="form-group">
-                <label>Стать</label>
+                <label>Стать *</label>
                 <select id="profile-gender">
-                    <option value="">Оберіть...</option>
-                    <option value="male">Чоловіча</option>
-                    <option value="female">Жіноча</option>
+                    <option value="Не вказувати">Не вказувати</option>
+                    <option value="Чоловіча">Чоловіча</option>
+                    <option value="Жіноча">Жіноча</option>
                 </select>
             </div>
           </div>
           <div class="form-group-row">
             <div class="form-group">
-                <label>Вага (кг)</label>
+                <label>Вага (кг) *</label>
                 <input type="number" id="profile-weight" min="1" step="0.1" placeholder="0">
             </div>
             <div class="form-group">
-                <label>Зріст (м)</label>
+                <label>Зріст (м) *</label>
                 <input type="number" id="profile-height" min="0.5" step="0.01" placeholder="0.00">
             </div>
           </div>
           <div id="bmi-display" class="highlight-badge">BMI: -</div>
-          <button id="save-profile-btn" class="primary-btn">Зберегти профіль</button>
         </section>
 
-        <!-- Goals Section -->
-        <section class="card goals-section">
+        <section class="settings-section">
           <h2>Цілі</h2>
           <div class="form-group">
             <label>Калорії (ккал)</label>
@@ -73,78 +82,97 @@
                 <input type="number" id="goal-carbs" min="0">
             </div>
           </div>
-          <button id="save-goals-btn" class="primary-btn">Оновити цілі</button>
 
-          <hr class="divider">
           <h3>Мотиватор</h3>
           <div class="form-group">
               <select id="motivator-select">
                   <option value="Потужний Михайло">Потужний Михайло</option>
-                  <option value="Спокійна Олена">Спокійна Олена</option>
+                  <option value="Марта Нутріціолог">Марта Нутріціолог</option>
+                  <option value="Денчик Нінзя">Денчик Нінзя</option>
+                  <option value="Юлія Астролог">Юлія Астролог</option>
               </select>
           </div>
+          <button id="save-settings-btn" class="primary-btn">Зберегти налаштування</button>
         </section>
+      </div>
+    </dialog>
+
+    <div class="app-container">
+      <header>
+        <h1>FitBalance</h1>
+        <!-- Gear icon acts as settings toggle by default -->
+        <button id="open-settings-btn" class="icon-btn">⚙️</button>
+      </header>
+
+      <div class="dashboard-section">
+        <div class="dashboard-header">
+            <h2 id="current-date-header">День: -</h2>
+            <div class="status-selector">
+                <label>Статус дня:</label>
+                <select id="status-select">
+                    <option value="">Не вибрано</option>
+                    <option value="Відпочинок">Відпочинок</option>
+                    <option value="Хвороба">Хвороба</option>
+                    <option value="Відпустка">Відпустка</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="motivator-message" class="motivator-badge hidden"></div>
+
+        <h3>Календар (Останні 30 днів)</h3>
+        <div id="calendar-container" class="calendar-wrapper"></div>
         
-        <!-- Main Dashboard -->
-        <section class="card dashboard-section">
-          <div class="dashboard-header">
-              <h2 id="current-date-header">День: -</h2>
-              <div class="status-selector">
-                  <label>Статус дня:</label>
-                  <select id="status-select">
-                      <option value="">Не вибрано</option>
-                      <option value="Виконано">Виконано</option>
-                      <option value="Відпочинок">Відпочинок</option>
-                      <option value="Хвороба/Лікарняний">Хвороба/Лікарняний</option>
-                      <option value="Відпустка">Відпустка</option>
-                  </select>
-              </div>
-          </div>
-
-          <div id="motivator-message" class="motivator-badge hidden"></div>
-
-          <h3>Календар (Останні 7 днів)</h3>
-          <div id="calendar-container" class="calendar-wrapper"></div>
-          
-          <div class="logs-grid">
-              <!-- Workout Log -->
-              <div class="log-panel">
-                  <h3>Журнал тренувань</h3>
-                  <div id="workout-list-container" class="list-container"></div>
-                  
-                  <div class="add-form">
-                      <input type="text" id="workout-name" placeholder="Назва (напр. Віджимання, Плавання)">
-                      <div class="form-group-row">
-                          <input type="number" id="workout-sets" placeholder="Підходи" min="0">
-                          <input type="number" id="workout-reps" placeholder="Повтори" min="0">
-                          <input type="number" id="workout-weight" placeholder="Вага (кг)" min="0" step="0.5">
+        <div class="logs-grid">
+            <!-- Workout Log -->
+            <div class="log-panel">
+                <h3>Журнал тренувань</h3>
+                <div id="workout-list-container" class="list-container"></div>
+                
+                <div class="add-form">
+                    <input type="text" id="workout-name" placeholder="Назва (тільки літери)" pattern="[A-Za-zА-Яа-яЁёІіЇїЄєҐґ\s]+">
+                    <div class="form-group-row">
+                        <input type="number" id="workout-sets" placeholder="Підходи" min="0">
+                        <input type="number" id="workout-reps" placeholder="Повтори" min="0">
+                        <input type="number" id="workout-weight" placeholder="Вага (кг)" min="0" step="0.5">
+                    </div>
+                    
+                    <div class="form-group">
+                      <label>Складність (1-3 пончики):</label>
+                      <div class="difficulty-selector">
+                        <label><input type="radio" name="difficulty" value="1" checked> 🍩 Легка</label>
+                        <label><input type="radio" name="difficulty" value="2"> 🍩🍩 Середня</label>
+                        <label><input type="radio" name="difficulty" value="3"> 🍩🍩🍩 Складна</label>
                       </div>
-                      <button id="add-workout-btn" class="secondary-btn">Додати активність</button>
-                  </div>
-              </div>
+                    </div>
+                    
+                    <div class="form-group">
+                      <input type="text" id="workout-notes" placeholder="Нотатки (напр. піша прогулянка)">
+                    </div>
 
-              <!-- Food Log -->
-              <div class="log-panel">
-                  <h3>Журнал харчування</h3>
-                  <div id="food-summary-container" class="list-container"></div>
+                    <button id="add-workout-btn" class="secondary-btn">Додати активність</button>
+                </div>
+            </div>
 
-                  <div class="add-form">
-                      <h4>Додати прийом їжі</h4>
-                      <div class="form-group-row">
-                          <input type="number" id="food-calories" placeholder="Ккал" min="0">
-                          <input type="number" id="food-protein" placeholder="Білки" min="0">
-                      </div>
-                      <div class="form-group-row">
-                          <input type="number" id="food-fat" placeholder="Жири" min="0">
-                          <input type="number" id="food-carbs" placeholder="Вуглеводи" min="0">
-                      </div>
-                      <button id="save-food-btn" class="secondary-btn">Додати їжу</button>
-                  </div>
-              </div>
-          </div>
+            <!-- Food Log -->
+            <div class="log-panel">
+                <h3>Журнал харчування</h3>
+                <div id="food-summary-container" class="list-container"></div>
 
-        </section>
-
+                <div class="add-form">
+                    <h4>Додати прийом їжі</h4>
+                    <div class="form-group-row">
+                        <input type="number" id="food-calories" placeholder="Ккал" min="0" step="1">
+                        <input type="number" id="food-protein" placeholder="Білки" min="0" step="1">
+                    </div>
+                    <div class="form-group-row">
+                        <input type="number" id="food-fat" placeholder="Жири" min="0" step="1">
+                        <input type="number" id="food-carbs" placeholder="Вуглеводи" min="0" step="1">
+                    </div>
+                    <button id="save-food-btn" class="secondary-btn">Додати їжу</button>
+                </div>
+            </div>
+        </div>
       </div>
 
       <footer class="demo-controls">

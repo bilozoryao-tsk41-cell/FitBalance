@@ -1,97 +1,151 @@
 // src/app.js
-import { getProfile, saveProfile, getRecordByDate, saveRecord, resetDemoData, flushData, getRecords } from './storage.js';
+import { getProfile, saveProfile, getRecordByDate, saveRecord, resetDemoData, flushData, getRecords, saveRecords } from './storage.js';
 import { renderCalendar, renderWorkoutList, renderFoodSummary } from './components.js';
 
 let profile = getProfile();
 let currentDate = new Date().toISOString().split('T')[0];
 let currentRecord = getRecordByDate(currentDate);
-let foodSubmitted = false;
-let workoutSubmitted = false;
 
 const MOTIVATORS = {
     "Потужний Михайло": [
-        "Не зупиняйся, ти машина!",
-        "Ще один підхід, і ти ближче до цілі!",
-        "Біль сьогодні - сила завтра!",
-        "Відпочинок для слабаків... жартую, відновлюйся!",
-        "Ти можеш більше, ніж думаєш!"
+        "Вставай і роби, бо ти машина, ти кіборг, ти моноліт! Ти закрив задачу тому тобі не прийдеться присідати штрафних 100 присідань!",
+        "Це база! Ти сьогодні справжній фундамент",
+        "Втома - це твоя ілюція, м'язи - реальність. Хороша робота! Я горжусь тобою)",
+        "Життя цікаве, і мотивація то є сила, філософія, психологія, саме головне залишайся людьми і кричіть що ви живі!",
+        "Ніколи не здавайся...і іди вперед до свої цілі і будь мужиком не слабаком"
     ],
-    "Спокійна Олена": [
-        "Слухай своє тіло, воно знає краще.",
-        "Кожен крок - це перемога.",
-        "Баланс - це головне. Ти молодець.",
-        "Не поспішай, головне регулярність.",
-        "Дихай глибоко і продовжуй."
+    "Марта Нутріціолог": [
+        "Баланс це головне, навіть якщо щось не вдається в тебе все вийде!",
+        "Пам'ятай... чисте харчування - чистий розум, здорове тіло!",
+        "Сьогодні ти став ближче до своєї мети, прямуй щоб КБЖВ виглядало ідеально!",
+        "Пам'ятай: Авокадо - це любов, а от майонез... давай вдамо що його не існує",
+        "Такий смішний нік Нічна Котлетка 67 ахкаха, кх кхм вибач відволіклася! Чудово виконана мета!!)"
+    ],
+    "Денчик Нінзя": [
+        "Моя зброя - це дисципліна, я навчу тебе нею користуватися!",
+        "Тихо прийшов, потужно відпрацював, справжній нінзя і на коврику і в залі!",
+        "Шлях воїна складається з таких днів, як цей!",
+        "Твоя концентрація вражає! Швидкість і точність справжнього сінсея!"
+    ],
+    "Юлія Астролог": [
+        "Твій гороскоп на сьогодні: 100% успіху та жодної зайвої калорії. Ти в ідеальному потоці зі Всесвітом!!!",
+        "Ретроградний Меркурій тобі не завада, коли є така воля)))",
+        "Всесвіт бачить твої старання і посилає тобі заряд бадьорості!",
+        "Відчуваю вібрації росту! Твоя аура сяє золотом після такого продуктивного дня. Зірки тобою пишаються.",
+        "Твій Марс сьогодні у фазі максимальної сили! Енергія б'є ключем, а м'язи заряджені самим космосом"
     ]
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    checkRedDaysSanction();
     initUI();
     bindEvents();
     updateUI();
 });
 
-function initUI() {
-    // Populate profile form
-    document.getElementById('profile-name').value = profile.name;
-    document.getElementById('profile-age').value = profile.age;
-    document.getElementById('profile-gender').value = profile.gender;
-    document.getElementById('profile-weight').value = profile.weight;
-    document.getElementById('profile-height').value = profile.height;
+function checkRedDaysSanction() {
+    // BR.Z: Sanction for missing a day
+    const records = getRecords();
+    const today = new Date();
+    today.setHours(0,0,0,0);
     
-    // Populate goals form
+    // Check yesterday
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yStr = yesterday.toISOString().split('T')[0];
+    
+    const rec = records[yStr];
+    const hasFood = rec && rec.food && rec.food.calories > 0;
+    const hasWorkout = rec && rec.workouts && rec.workouts.length > 0;
+    const isExempt = rec && (rec.status === 'Хвороба' || rec.status === 'Відпустка' || rec.status === 'Відпочинок');
+    
+    if (!hasFood && !hasWorkout && !isExempt) {
+        // Red day detected!
+        document.getElementById('sanction-overlay').classList.remove('hidden');
+        // Wipe data but keep profile
+        saveRecords({});
+        // Reload current record since we just wiped
+        currentRecord = getRecordByDate(currentDate); 
+    }
+}
+
+function initUI() {
+    document.getElementById('profile-name').value = profile.name || '';
+    document.getElementById('profile-lastname').value = profile.lastname || '';
+    document.getElementById('profile-age').value = profile.age || '';
+    document.getElementById('profile-gender').value = profile.gender || 'Не вказувати';
+    document.getElementById('profile-weight').value = profile.weight || '';
+    document.getElementById('profile-height').value = profile.height || '';
+    
     document.getElementById('goal-calories').value = profile.calorieGoal;
     document.getElementById('goal-protein').value = profile.proteinGoal;
     document.getElementById('goal-fat').value = profile.fatGoal;
     document.getElementById('goal-carbs').value = profile.carbGoal;
     
-    // Populate motivator
-    document.getElementById('motivator-select').value = profile.motivator;
+    document.getElementById('motivator-select').value = profile.motivator || 'Потужний Михайло';
 }
 
 function bindEvents() {
-    // Profile inputs (auto calc BMI - FR2, NFR4)
-    const profileInputs = ['profile-weight', 'profile-height'];
-    profileInputs.forEach(id => {
+    // Modal toggle
+    const settingsBtn = document.getElementById('open-settings-btn');
+    const modal = document.getElementById('settings-modal');
+    const closeBtn = document.getElementById('close-settings');
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
+
+    settingsBtn.onclick = () => modal.setAttribute('open', '');
+    closeBtn.onclick = () => modal.removeAttribute('open');
+    saveSettingsBtn.onclick = () => {
+        updateProfileAndGoals();
+        modal.removeAttribute('open');
+    };
+
+    // Auto BMI update
+    ['profile-weight', 'profile-height'].forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
-            updateProfile();
-            checkRules();
+            updateBMI();
         });
     });
-    
-    // Save Profile & Goals
-    document.getElementById('save-profile-btn').addEventListener('click', updateProfile);
-    document.getElementById('save-goals-btn').addEventListener('click', updateGoals);
-    
+
+    // Sanction accept
+    document.getElementById('accept-sanction-btn').addEventListener('click', () => {
+        document.getElementById('sanction-overlay').classList.add('hidden');
+        updateUI();
+    });
+
     // Status Select
     document.getElementById('status-select').addEventListener('change', (e) => {
         currentRecord.status = e.target.value;
         saveRecord(currentRecord);
         updateUI();
-        checkRules();
-    });
-    
-    // Motivator Select
-    document.getElementById('motivator-select').addEventListener('change', (e) => {
-        profile.motivator = e.target.value;
-        saveProfile(profile);
-        updateUI();
     });
     
     // Workout Form
     document.getElementById('add-workout-btn').addEventListener('click', () => {
-        const name = document.getElementById('workout-name').value;
+        const nameInput = document.getElementById('workout-name');
+        if(!nameInput.checkValidity()) {
+            alert('Назва вправи може містити лише літери!');
+            return;
+        }
+
+        const name = nameInput.value;
         const sets = parseInt(document.getElementById('workout-sets').value) || 0;
         const reps = parseInt(document.getElementById('workout-reps').value) || 0;
         const weight = parseFloat(document.getElementById('workout-weight').value) || 0;
-        
+        const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+        const notes = document.getElementById('workout-notes').value;
+
         if (name) {
-            currentRecord.workouts.push({ name, sets, reps, weight });
+            currentRecord.workouts.push({ name, sets, reps, weight, difficulty, notes });
             saveRecord(currentRecord);
-            workoutSubmitted = true;
-            document.getElementById('workout-name').value = '';
+            
+            // clear inputs
+            nameInput.value = '';
+            document.getElementById('workout-sets').value = '';
+            document.getElementById('workout-reps').value = '';
+            document.getElementById('workout-weight').value = '';
+            document.getElementById('workout-notes').value = '';
+            
             updateUI();
-            checkRules();
         }
     });
     
@@ -108,7 +162,6 @@ function bindEvents() {
         currentRecord.food.carbs += carb;
         
         saveRecord(currentRecord);
-        foodSubmitted = true;
         
         // clear inputs
         document.getElementById('food-calories').value = '';
@@ -117,7 +170,6 @@ function bindEvents() {
         document.getElementById('food-carbs').value = '';
         
         updateUI();
-        checkRules();
     });
     
     // Demo data controls
@@ -125,113 +177,119 @@ function bindEvents() {
     document.getElementById('flush-data-btn').addEventListener('click', flushData);
 }
 
-function updateProfile() {
-    profile.name = document.getElementById('profile-name').value;
-    profile.age = document.getElementById('profile-age').value;
-    profile.gender = document.getElementById('profile-gender').value;
-    profile.weight = parseFloat(document.getElementById('profile-weight').value) || 0;
-    profile.height = parseFloat(document.getElementById('profile-height').value) || 0;
-    saveProfile(profile);
-    
-    // Calculate BMI
-    if (profile.weight > 0 && profile.height > 0) {
-        const bmi = (profile.weight / (profile.height * profile.height)).toFixed(1);
+function updateBMI() {
+    const w = parseFloat(document.getElementById('profile-weight').value) || 0;
+    const h = parseFloat(document.getElementById('profile-height').value) || 0;
+    if (w > 0 && h > 0) {
+        const bmi = (w / (h * h)).toFixed(1);
         document.getElementById('bmi-display').innerText = `BMI: ${bmi}`;
+        
+        // BR1: Easter Egg replacing gear with donut
+        const btn = document.getElementById('open-settings-btn');
+        if (bmi > 25) {
+            btn.innerText = '🍩';
+        } else {
+            btn.innerText = '⚙️';
+        }
     } else {
         document.getElementById('bmi-display').innerText = `BMI: -`;
     }
 }
 
-function updateGoals() {
+function updateProfileAndGoals() {
+    profile.name = document.getElementById('profile-name').value;
+    profile.lastname = document.getElementById('profile-lastname').value;
+    profile.age = parseInt(document.getElementById('profile-age').value) || '';
+    profile.gender = document.getElementById('profile-gender').value;
+    profile.weight = parseFloat(document.getElementById('profile-weight').value) || 0;
+    profile.height = parseFloat(document.getElementById('profile-height').value) || 0;
+    
     profile.calorieGoal = parseInt(document.getElementById('goal-calories').value) || 0;
     profile.proteinGoal = parseInt(document.getElementById('goal-protein').value) || 0;
     profile.fatGoal = parseInt(document.getElementById('goal-fat').value) || 0;
     profile.carbGoal = parseInt(document.getElementById('goal-carbs').value) || 0;
+    
+    profile.motivator = document.getElementById('motivator-select').value;
+    
     saveProfile(profile);
+    updateBMI();
     updateUI();
 }
 
 export function selectDate(dateString) {
     currentDate = dateString;
     currentRecord = getRecordByDate(currentDate);
-    // Reset submission flags for the new date to require clicking again
-    foodSubmitted = false;
-    workoutSubmitted = false;
     updateUI();
-    checkRules();
 }
 
 function updateUI() {
-    // Update Date Header
     document.getElementById('current-date-header').innerText = `День: ${currentDate}`;
     
-    // Status Select
-    document.getElementById('status-select').value = currentRecord.status;
-    
+    // Check 15 days rest limit (BR.X)
+    checkRestLimit();
+
     // Render Components
-    renderCalendar('calendar-container', currentDate, selectDate);
+    renderCalendar('calendar-container', currentDate, selectDate, profile);
     renderWorkoutList('workout-list-container', currentRecord.workouts);
     renderFoodSummary('food-summary-container', currentRecord.food, profile);
     
-    updateProfile(); // update BMI display
-    checkRules();
+    updateBMI(); // Initialize BMI display and icon
+    checkMotivator();
 }
 
-function checkRules() {
-    let showDonut = false;
-    
-    // BR1: BMI > 25
-    if (profile.weight > 0 && profile.height > 0) {
-        const bmi = (profile.weight / (profile.height * profile.height));
-        if (bmi > 25) showDonut = true;
-    }
-    
-    // BR3: Calories limit exceeded
-    if (currentRecord.food.calories > profile.calorieGoal) {
-        showDonut = true;
-    }
-    
-    // BR2: 14 days rest
+function checkRestLimit() {
     const records = getRecords();
     let consecutiveRestDays = 0;
     const today = new Date();
+    today.setHours(0,0,0,0);
+    
     for (let i = 0; i < 30; i++) {
         const d = new Date(today);
         d.setDate(today.getDate() - i);
         const ds = d.toISOString().split('T')[0];
         const r = records[ds];
+        
         if (r && r.status === 'Відпочинок') {
             consecutiveRestDays++;
-        } else if (r && (r.status === 'Хвороба/Лікарняний' || r.status === 'Відпустка')) {
-            // BR5: Streak freeze
+        } else if (r && (r.status === 'Хвороба' || r.status === 'Відпустка')) {
+            // Freeze
             continue;
         } else {
             break;
         }
     }
     
-    if (consecutiveRestDays >= 14) {
-        showDonut = true;
-    }
-    
-    // Display Donut
-    const easterEggEl = document.getElementById('easter-egg-donut');
-    if (showDonut) {
-        easterEggEl.classList.remove('hidden');
+    const statusSelect = document.getElementById('status-select');
+    // If 15 days or more, prohibit selecting "Відпочинок"
+    if (consecutiveRestDays >= 15) {
+        if(statusSelect.querySelector('option[value="Відпочинок"]')) {
+            statusSelect.querySelector('option[value="Відпочинок"]').disabled = true;
+            if(statusSelect.value === 'Відпочинок') statusSelect.value = '';
+        }
     } else {
-        easterEggEl.classList.add('hidden');
+        if(statusSelect.querySelector('option[value="Відпочинок"]')) {
+            statusSelect.querySelector('option[value="Відпочинок"]').disabled = false;
+        }
     }
-    
-    // BR4: Motivator activation
+    document.getElementById('status-select').value = currentRecord.status || '';
+}
+
+function checkMotivator() {
     const motivatorEl = document.getElementById('motivator-message');
-    if (workoutSubmitted && foodSubmitted) {
+    const hasWorkout = currentRecord.workouts && currentRecord.workouts.length > 0;
+    const hasFood = currentRecord.food.calories > 0;
+    const isExempt = currentRecord.status === 'Хвороба' || currentRecord.status === 'Відпустка' || currentRecord.status === 'Відпочинок';
+    
+    if ((hasWorkout && hasFood) || (isExempt && hasFood)) {
         const phrases = MOTIVATORS[profile.motivator] || MOTIVATORS["Потужний Михайло"];
-        // Pick a random phrase
-        const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+        // Pick phrase deterministically based on date so it doesn't flip on every render
+        const dateHash = currentDate.split('-').reduce((a, b) => parseInt(a) + parseInt(b), 0);
+        const phrase = phrases[dateHash % phrases.length];
         motivatorEl.innerText = `${profile.motivator} каже: "${phrase}"`;
         motivatorEl.classList.remove('hidden');
     } else {
         motivatorEl.classList.add('hidden');
     }
 }
-window.selectDate = selectDate; // Make it available globally for inline onclick
+
+window.selectDate = selectDate;
