@@ -54,8 +54,9 @@ export const renderCalendar = (containerId, selectedDate, onDateSelect, profile)
         const dStr = dateObj.toISOString().split('T')[0];
         const record = getRecordByDate(dStr);
         
+        const isFuture = dStr > todayStr;
         const dayEl = document.createElement('div');
-        dayEl.className = `calendar-day ${dStr === selectedDate ? 'selected' : ''} ${dStr === todayStr ? 'today' : ''}`;
+        dayEl.className = `calendar-day ${dStr === selectedDate ? 'selected' : ''} ${dStr === todayStr ? 'today' : ''} ${isFuture ? 'future' : ''}`;
         
         let colorClass = '';
         let hasFood = record.food.calories > 0;

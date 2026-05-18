@@ -36,10 +36,52 @@ const MOTIVATORS = {
     ]
 };
 
+let workoutRows = [{ id: 1 }];
+
+function renderWorkoutRows() {
+    const container = document.getElementById('workout-rows-container');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    workoutRows.forEach((row, i) => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'workout-row';
+        rowEl.innerHTML = `
+            <div class="workout-row-header">
+                <span class="workout-row-title">Вправа ${i + 1}</span>
+                ${workoutRows.length > 1 ? `<button type="button" class="delete-row-btn" data-row-id="${row.id}">🗑️</button>` : ''}
+            </div>
+            <div class="form-group">
+                <input type="text" class="workout-row-name" placeholder="Назва (тільки літери)" pattern="[A-Za-zА-Яа-яЁёІіЇїЄєҐґ\\s]+" required>
+            </div>
+            <div class="form-group-row">
+                <input type="number" class="workout-row-sets" placeholder="Підходи" min="0">
+                <input type="number" class="workout-row-reps" placeholder="Повтори" min="0">
+                <input type="number" class="workout-row-weight" placeholder="Вага (кг)" min="0" step="0.5">
+            </div>
+            
+            <div class="form-group">
+              <label>Складність (1-3 пончики):</label>
+              <div class="difficulty-selector">
+                <label><input type="radio" name="difficulty-${row.id}" value="1" checked> 🍩 Легка</label>
+                <label><input type="radio" name="difficulty-${row.id}" value="2"> 🍩🍩 Середня</label>
+                <label><input type="radio" name="difficulty-${row.id}" value="3"> 🍩🍩🍩 Складна</label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <input type="text" class="workout-row-notes" placeholder="Нотатки (напр. піша прогулянка)">
+            </div>
+        `;
+        container.appendChild(rowEl);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     checkRedDaysSanction();
     initUI();
     bindEvents();
+    renderWorkoutRows();
     updateUI();
 });
 
@@ -143,37 +185,59 @@ function bindEvents() {
         updateUI();
     });
     
-    // Workout Form
-    document.getElementById('add-workout-btn').addEventListener('click', () => {
-        const nameInput = document.getElementById('workout-name');
-        if(!nameInput.checkValidity()) {
-            alert('Назва вправи може містити лише літери!');
+    // Workout Form (Dynamic Multi-rows)
+    document.getElementById('add-workout-row-btn').addEventListener('click', () => {
+        workoutRows.push({ id: Date.now() });
+        renderWorkoutRows();
+    });
+
+    // Delete temporary workout row
+    document.getElementById('workout-rows-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-row-btn')) {
+            const rowId = parseInt(e.target.getAttribute('data-row-id'));
+            workoutRows = workoutRows.filter(r => r.id !== rowId);
+            renderWorkoutRows();
+        }
+    });
+
+    // Save All Workouts
+    document.getElementById('save-workouts-btn').addEventListener('click', () => {
+        const rows = document.querySelectorAll('.workout-row');
+        const newWorkouts = [];
+        let allValid = true;
+
+        rows.forEach((row) => {
+            const nameEl = row.querySelector('.workout-row-name');
+            if (!nameEl.checkValidity() || !nameEl.value.trim()) {
+                allValid = false;
+                nameEl.focus();
+            }
+            const name = nameEl.value.trim();
+            const sets = parseInt(row.querySelector('.workout-row-sets').value) || 0;
+            const reps = parseInt(row.querySelector('.workout-row-reps').value) || 0;
+            const weight = parseFloat(row.querySelector('.workout-row-weight').value) || 0;
+            const id = row.querySelector('.delete-row-btn')?.getAttribute('data-row-id') || 1;
+            const difficulty = row.querySelector(`input[name="difficulty-${id}"]:checked`)?.value || '1';
+            const notes = row.querySelector('.workout-row-notes').value;
+
+            newWorkouts.push({ name, sets, reps, weight, difficulty, notes });
+        });
+
+        if (!allValid) {
+            alert('Перевірте правильність заповнення назв вправ (тільки літери)!');
             return;
         }
 
-        const name = nameInput.value;
-        const sets = parseInt(document.getElementById('workout-sets').value) || 0;
-        const reps = parseInt(document.getElementById('workout-reps').value) || 0;
-        const weight = parseFloat(document.getElementById('workout-weight').value) || 0;
-        const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
-        const notes = document.getElementById('workout-notes').value;
+        currentRecord.workouts = [...currentRecord.workouts, ...newWorkouts];
+        saveRecord(currentRecord);
 
-        if (name) {
-            currentRecord.workouts.push({ name, sets, reps, weight, difficulty, notes });
-            saveRecord(currentRecord);
-            
-            // clear inputs
-            nameInput.value = '';
-            document.getElementById('workout-sets').value = '';
-            document.getElementById('workout-reps').value = '';
-            document.getElementById('workout-weight').value = '';
-            document.getElementById('workout-notes').value = '';
-            
-            updateUI();
-        }
+        // Reset dynamic forms to single row
+        workoutRows = [{ id: Date.now() }];
+        renderWorkoutRows();
+        updateUI();
     });
     
-    // Delete Workout event delegation
+    // Delete Workout from saved list event delegation
     document.getElementById('workout-list-container').addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-workout-btn')) {
             const index = e.target.getAttribute('data-index');
@@ -181,6 +245,11 @@ function bindEvents() {
             saveRecord(currentRecord);
             updateUI();
         }
+    });
+
+    // Close motivator toast
+    document.getElementById('close-toast').addEventListener('click', () => {
+        document.getElementById('motivator-toast').classList.add('hidden');
     });
     
     // Food Form
@@ -252,6 +321,11 @@ function updateProfileAndGoals() {
 }
 
 export function selectDate(dateString) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (dateString > todayStr) {
+        alert('Ви не можете заповнювати дані на майбутні дні!');
+        return;
+    }
     currentDate = dateString;
     currentRecord = getRecordByDate(currentDate);
     updateUI();
@@ -310,20 +384,24 @@ function checkRestLimit() {
 }
 
 function checkMotivator() {
-    const motivatorEl = document.getElementById('motivator-message');
+    const toastEl = document.getElementById('motivator-toast');
+    const contentEl = document.getElementById('motivator-message-content');
+    if (!toastEl || !contentEl) return;
+    
     const hasWorkout = currentRecord.workouts && currentRecord.workouts.length > 0;
     const hasFood = currentRecord.food.calories > 0;
     const isExempt = currentRecord.status === 'Хвороба' || currentRecord.status === 'Відпустка' || currentRecord.status === 'Відпочинок';
+    const isManualTraining = currentRecord.status === 'Тренування';
     
-    if ((hasWorkout && hasFood) || (isExempt && hasFood)) {
+    if ((hasWorkout && hasFood) || (isExempt && hasFood) || (isManualTraining && hasFood)) {
         const phrases = MOTIVATORS[profile.motivator] || MOTIVATORS["Потужний Михайло"];
         // Pick phrase deterministically based on date so it doesn't flip on every render
         const dateHash = currentDate.split('-').reduce((a, b) => parseInt(a) + parseInt(b), 0);
         const phrase = phrases[dateHash % phrases.length];
-        motivatorEl.innerText = `${profile.motivator} каже: "${phrase}"`;
-        motivatorEl.classList.remove('hidden');
+        contentEl.innerText = `${profile.motivator} каже: "${phrase}"`;
+        toastEl.classList.remove('hidden');
     } else {
-        motivatorEl.classList.add('hidden');
+        toastEl.classList.add('hidden');
     }
 }
 

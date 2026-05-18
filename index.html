@@ -119,10 +119,14 @@
             </div>
         </div>
 
-        <div id="motivator-message" class="motivator-badge hidden"></div>
+        <!-- Motivator Floating Toast -->
+        <div id="motivator-toast" class="toast hidden">
+          <span id="close-toast" class="close-toast">&times;</span>
+          <div id="motivator-message-content"></div>
+        </div>
 
-        <h3>Календар (Останні 30 днів)</h3>
-        <div id="calendar-container" class="calendar-wrapper"></div>
+        <h3>Календар активності</h3>
+        <div id="calendar-container"></div>
         
         <div class="logs-grid">
             <!-- Workout Log -->
@@ -131,27 +135,13 @@
                 <div id="workout-list-container" class="list-container"></div>
                 
                 <div class="add-form">
-                    <input type="text" id="workout-name" placeholder="Назва (тільки літери)" pattern="[A-Za-zА-Яа-яЁёІіЇїЄєҐґ\s]+">
-                    <div class="form-group-row">
-                        <input type="number" id="workout-sets" placeholder="Підходи" min="0">
-                        <input type="number" id="workout-reps" placeholder="Повтори" min="0">
-                        <input type="number" id="workout-weight" placeholder="Вага (кг)" min="0" step="0.5">
+                    <div id="workout-rows-container">
+                        <!-- Dynamic rows will be rendered here by JS -->
                     </div>
-                    
-                    <div class="form-group">
-                      <label>Складність (1-3 пончики):</label>
-                      <div class="difficulty-selector">
-                        <label><input type="radio" name="difficulty" value="1" checked> 🍩 Легка</label>
-                        <label><input type="radio" name="difficulty" value="2"> 🍩🍩 Середня</label>
-                        <label><input type="radio" name="difficulty" value="3"> 🍩🍩🍩 Складна</label>
-                      </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button id="add-workout-row-btn" class="outline-btn" style="width: auto;">+ Додати ще вправу</button>
+                        <button id="save-workouts-btn" class="secondary-btn">Зберегти тренування</button>
                     </div>
-                    
-                    <div class="form-group">
-                      <input type="text" id="workout-notes" placeholder="Нотатки (напр. піша прогулянка)">
-                    </div>
-
-                    <button id="add-workout-btn" class="secondary-btn">Додати активність</button>
                 </div>
             </div>
 

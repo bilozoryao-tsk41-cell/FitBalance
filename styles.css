@@ -207,16 +207,86 @@ input:invalid {
   margin: 1rem 0;
 }
 
-.motivator-badge {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
-  border: 1px solid var(--secondary-color);
-  color: var(--secondary-color);
-  padding: 1rem;
-  border-radius: 0.75rem;
-  margin-bottom: 1.5rem;
+/* Toast Notification Style for Motivator Pop-up */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(30, 41, 59, 0.95);
+  border: 2px solid var(--secondary-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  max-width: 350px;
+  color: var(--text-main);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 5000;
+  animation: slideIn 0.3s ease-out;
+  display: block;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.close-toast {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.close-toast:hover {
+  color: white;
+}
+
+#motivator-message-content {
   font-style: italic;
   font-weight: 600;
-  text-align: center;
+  line-height: 1.5;
+  color: var(--secondary-color);
+}
+
+/* Future day style */
+.calendar-day.future {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Dynamic Workout Form Rows */
+.workout-row {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.workout-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.25rem;
+}
+
+.workout-row-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.delete-row-btn {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1.1rem;
 }
 
 .calendar-wrapper {
