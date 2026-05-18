@@ -434,6 +434,9 @@ export function selectDate(dateString) {
         alert('Ви не можете заповнювати дані на майбутні дні!');
         return;
     }
+    if (dateString < todayStr) {
+        alert('Ви перейшли на минулий день. Редагування та заповнення даних за попередні дні заблоковано!');
+    }
     currentDate = dateString;
     currentRecord = getRecordByDate(currentDate);
     updateUI();

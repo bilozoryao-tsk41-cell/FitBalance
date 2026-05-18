@@ -401,8 +401,11 @@ input:invalid {
 }
 
 .calendar-day.selected {
-  background-color: rgba(255, 255, 255, 0.05);
-  transform: scale(1.05);
+  border-color: #f59e0b !important; /* bright amber/gold border */
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+  transform: scale(1.08);
+  z-index: 10;
+  background-color: rgba(245, 158, 11, 0.15) !important;
 }
 
 .day-status {
